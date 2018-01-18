@@ -1,17 +1,17 @@
 /**
- * Simple object class that represents a departure for a given line at a given stop.
- * The object implements Comparable since the waiting time is not always numerical:
- * for instance, the waiting time can go from 1 min to "Coming soon".
- * We assume that a message is inferior to a numerical waiting time. One should also
- * seek to parse warning messages like "Delayed".
+ * Simple object class that represents a departure for a given line at a given
+ * stop. The object implements Comparable since the waiting time is not always
+ * numerical: for instance, the waiting time can go from 1 min to "Coming soon".
+ * We assume that a message is inferior to a numerical waiting time. One should
+ * also seek to parse warning messages like "Delayed".
+ * 
  * @author Quentin
- *
  */
 public class Departure implements Comparable<Departure> {
-	
-	
+
 	/**
 	 * Minimal working example
+	 * 
 	 * @param args
 	 */
 	public static void main(String args[]) {
@@ -20,12 +20,12 @@ public class Departure implements Comparable<Departure> {
 		Departure _departure2 = new Departure("Destination heaven", 12);
 		Departure _departure3 = new Departure("Destination above", "Coming next");
 		Departure _departure4 = new Departure("Destination bliss", "Just arriving");
-		
+
 		// Print Departures
 		System.out.println(_departure1);
 		System.out.println(_departure2);
 		System.out.println(_departure3);
-		
+
 		// Comparison between two departures
 		// a.compareTo(b) should be 1, 0, -1 if a < b, a == b, a > b
 		System.out.println(_departure1.compareTo(_departure2));
@@ -33,39 +33,38 @@ public class Departure implements Comparable<Departure> {
 		System.out.println(_departure1.compareTo(_departure3));
 		System.out.println(_departure3.compareTo(_departure1));
 		System.out.println(_departure3.compareTo(_departure4));
-		
-		/*
-		 * Result:
-		 * Destination paradise	21
-		 * Destination heaven	12
-		 * Destination above	Coming next
-		 * -1		// Time to time comparison
-		 * 1		// Time to time comparison
-		 * -1		// Time to message comparison
-		 * 1		// Message to time comparison
-		 * 0		// Message to message comparison
-		 */
+
+		// Result:
+		// Destination paradise 21
+		// Destination heaven 12
+		// Destination above Coming next
+		// -1 // Time to time comparison
+		// 1 // Time to time comparison
+		// -1 // Time to message comparison
+		// 1 // Message to time comparison
+		// 0 // Message to message comparison
+
 	}
-	
-	
+
 	/*
 	 * Private parameters
 	 */
-	
+
 	private static final int CODE_DURATION = 0;
 	private static final int CODE_MESSAGE = 1;
-	
+
 	private int m_code;
-	
+
 	private String m_lineDirection;
 	// TODO implement handling direction code when available
-	//private int m_directionCode;
-	
+	// private int m_directionCode;
+
 	private String m_message;
 	private int m_time;
-	
+
 	/**
 	 * Constructor with available numeric time
+	 * 
 	 * @param _lineDirection
 	 * @param _time
 	 */
@@ -74,9 +73,10 @@ public class Departure implements Comparable<Departure> {
 		m_lineDirection = _lineDirection;
 		m_time = _time;
 	}
-	
+
 	/**
 	 * Constructor with subjective waiting time (for instance "coming soon")
+	 * 
 	 * @param _lineDirection
 	 * @param _schedule
 	 */
@@ -85,18 +85,18 @@ public class Departure implements Comparable<Departure> {
 		m_lineDirection = _lineDirection;
 		m_message = _schedule;
 	}
-	
+
 	@Override
 	public String toString() {
 		return getLineDirection() + "\t" + getWaitingTime();
 	}
-	
+
 	public String getLineDirection() {
 		return m_lineDirection;
 	}
-	
+
 	public String getWaitingTime() {
-		switch(m_code) {
+		switch (m_code) {
 		case CODE_DURATION:
 			return "" + m_time;
 		case CODE_MESSAGE:
@@ -116,7 +116,7 @@ public class Departure implements Comparable<Departure> {
 			return 1;
 		} else if (this.m_code == CODE_DURATION && arg0.m_code == CODE_MESSAGE) {
 			return -1;
-		} 
+		}
 		return 0;
 	}
 }

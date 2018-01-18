@@ -15,3 +15,9 @@ The project consists in the following files:
 
 
 */src/Departure.java*: implements an object to store the query results in a usable way.
+
+
+### Dependancies
+
+
+This program makes use of the library JSON-java for query parsing. Details about the library can be found on the [GitHub page](https://github.com/stleary/JSON-java). The `.jar` files can be downloaded [here](http://mvnrepository.com/artifact/org.json/json) for instance.
