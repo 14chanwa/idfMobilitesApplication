@@ -12,8 +12,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * This class implements static functions that gets data from the Ile-de-France Mobilités. This is essentially
- * HTML requests with HTTPS and CSRF support.
+ * This class implements static functions that gets data from the Ile-de-France Mobilités. This is 
+ * mainly HTML requests with HTTPS and CSRF support, and JSON for query parsing.
+ * The API is a web API ; the description can be found on Ile-de-France Mobilités's website. The
+ * user has to perform a HTTPS GET query on a given URL, after authenticating through a CSRF cookie
+ * and an API key.
+ * This program requires you registering to Île-de-France Mobilités website in order to get an API 
+ * key. This is free, yet you must register to the OpenData program.
  * @author Quentin
  */
 public class DataRetriever {
@@ -45,6 +50,17 @@ public class DataRetriever {
 		for (Departure d : testList) {
 			System.out.println(d);
 		}
+		/*
+		 * Typical result:
+		 * Place d'Italie	A quai
+		 * Place d'Italie	7
+		 * Place d'Italie	15
+		 * Place d'Italie	21
+		 * Bobigny Pablo Picasso	A quai
+		 * Bobigny Pablo Picasso	8
+		 * Bobigny Pablo Picasso	14
+		 * Bobigny Pablo Picasso	20
+		 */
 		
 		// List next departures for line 38 at stop Auguste Comte
 		System.out.println("\nLine 38, stop Auguste Comte: ");
@@ -52,6 +68,13 @@ public class DataRetriever {
 		for (Departure d : testList) {
 			System.out.println(d);
 		}
+		/*
+		 * Typical result:
+		 * Porte d'Orleans	5
+		 * Gare du Nord	13
+		 * Porte d'Orleans	15
+		 * Gare du Nord	29
+		 */
 	}
 	
 	

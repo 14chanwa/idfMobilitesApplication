@@ -1,5 +1,9 @@
 /**
- * Simple object class that represents a departure 
+ * Simple object class that represents a departure for a given line at a given stop.
+ * The object implements Comparable since the waiting time is not always numerical:
+ * for instance, the waiting time can go from 1 min to "Coming soon".
+ * We assume that a message is inferior to a numerical waiting time. One should also
+ * seek to parse warning messages like "Delayed".
  * @author Quentin
  *
  */
@@ -29,6 +33,18 @@ public class Departure implements Comparable<Departure> {
 		System.out.println(_departure1.compareTo(_departure3));
 		System.out.println(_departure3.compareTo(_departure1));
 		System.out.println(_departure3.compareTo(_departure4));
+		
+		/*
+		 * Result:
+		 * Destination paradise	21
+		 * Destination heaven	12
+		 * Destination above	Coming next
+		 * -1		// Time to time comparison
+		 * 1		// Time to time comparison
+		 * -1		// Time to message comparison
+		 * 1		// Message to time comparison
+		 * 0		// Message to message comparison
+		 */
 	}
 	
 	
