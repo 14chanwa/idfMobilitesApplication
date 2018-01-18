@@ -1,4 +1,4 @@
-package idfmobilitesDisplayer;
+
 
 import java.io.BufferedReader;
 import java.io.InputStream;
