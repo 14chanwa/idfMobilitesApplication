@@ -17,6 +17,9 @@ The project consists in the following files:
 */src/Departure.java*: implements an object to store the query results in a usable way.
 
 
+*/src/DepartureViewer.java*: builds a JFrame that displays the next departures for a given line at a given stop. **Work in progress.**
+
+
 ### Dependancies
 
 

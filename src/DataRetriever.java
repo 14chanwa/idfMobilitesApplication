@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -29,29 +30,31 @@ public class DataRetriever {
 	 * Minimal working example
 	 * 
 	 * @param args
+	 *            The first argument must be a valid API key.
 	 */
-	@SuppressWarnings("unused")
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 
 		// This program requires you registering to Île-de-France Mobilités website in
-		// order to get
-		// an API key. This is free, yet you must register to the OpenData program.
+		// order to get an API key. This is free, yet you must register to the OpenData
+		// program.
 		// I cannot disclose my key for obvious reasons
-		String my_api_key = null;
-		if (my_api_key == null) {
-			System.err.println("You must first get a valid API key... sorry!");
-			return;
-		}
+		String my_api_key = args[0];
 
+		// Set API Key (static variable that will be used by all methods)
 		DataRetriever.setAPIKey(my_api_key);
 
 		List<Departure> testList;
 
 		// List next departures for line M5 at stop Gare du Nord
 		System.out.println("Line M5, stop Gare du Nord: ");
-		testList = DataRetriever.getDeparturesLineAtStop("100110005:5", "StopPoint:59270");
-		for (Departure d : testList) {
-			System.out.println(d);
+		try {
+			testList = DataRetriever.getDeparturesLineAtStop("100110005:5", "StopPoint:59270");
+			for (Departure d : testList) {
+				System.out.println(d);
+			}
+		} catch (DataRetriever.UnauthorizedException e) {
+			e.printStackTrace();
+			;
 		}
 
 		// Typical result:
@@ -66,9 +69,14 @@ public class DataRetriever {
 
 		// List next departures for line 38 at stop Auguste Comte
 		System.out.println("\nLine 38, stop Auguste Comte: ");
-		testList = DataRetriever.getDeparturesLineAtStop("100100038:38", "59:3764622");
-		for (Departure d : testList) {
-			System.out.println(d);
+		try {
+			testList = DataRetriever.getDeparturesLineAtStop("100100038:38", "59:3764622");
+			for (Departure d : testList) {
+				System.out.println(d);
+			}
+		} catch (DataRetriever.UnauthorizedException e) {
+			e.printStackTrace();
+			;
 		}
 
 		// Typical result:
@@ -83,8 +91,8 @@ public class DataRetriever {
 	 * Private variables
 	 */
 
-	private static String m_apiKey;
-	private static String m_csrfToken;
+	private static String m_apiKey = null;
+	private static String m_csrfToken = null;
 	private static final String m_csrfURL = "https://api-lab-trone-stif.opendata.stif.info/service";
 	private static List<String> m_cookies;
 
@@ -115,8 +123,13 @@ public class DataRetriever {
 	 * @param _lineId
 	 * @param _stopID
 	 * @return
+	 * @throws UnauthorizedException
 	 */
-	public static List<Departure> getDeparturesLineAtStop(String _lineId, String _stopID) {
+	public static List<Departure> getDeparturesLineAtStop(String _lineId, String _stopID) throws UnauthorizedException {
+
+		if (m_apiKey == null) {
+			throw new UnauthorizedException("You must first set a valid API key using DataRetriever.setAPIKey");
+		}
 
 		// Prepare API query
 		String _urlString = "https://api-lab-trone-stif.opendata.stif.info/service/tr-vianavigo/departures?" + "apikey="
@@ -132,7 +145,7 @@ public class DataRetriever {
 		String _queryAnswer = _executeGetRequest(url);
 
 		// Debug
-		// System.out.println("Raw answer:\n" + _queryAnswer);
+		// System.err.println("Raw answer:\n" + _queryAnswer);
 
 		// Build list of departures
 		List<Departure> _departures = new ArrayList<Departure>();
@@ -141,7 +154,7 @@ public class DataRetriever {
 		String _testString = "{\"item\" : " + _queryAnswer + "}";
 		JSONObject obj = new JSONObject(_testString);
 
-		// Parse items of list
+		// Parse items of JSON answer
 		JSONArray arr = obj.getJSONArray("item");
 		for (int i = 0; i < arr.length(); i++) {
 			// If duration, call duration constructor
@@ -163,20 +176,34 @@ public class DataRetriever {
 	 * 
 	 */
 
+	public static class UnauthorizedException extends Exception {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public UnauthorizedException(String _message) {
+			super(_message);
+		}
+
+	}
+
 	/**
 	 * Execute a HTTP/1.1 GET method using the provided URL, with the current CSRF
 	 * token.
 	 * 
 	 * @param url
 	 * @return
+	 * @throws UnauthorizedException
 	 */
-	private static String _executeGetRequest(URL url) {
+	private static String _executeGetRequest(URL url) throws UnauthorizedException {
 		HttpsURLConnection connection = null;
 		StringBuffer response = new StringBuffer();
 
 		try {
 			// Print query
-			System.out.println("Query: " + url);
+			System.err.println("Query: " + url);
 
 			connection = (HttpsURLConnection) url.openConnection();
 			connection.setRequestMethod("GET");
@@ -188,12 +215,14 @@ public class DataRetriever {
 			connection.setRequestProperty("X-CSRFToken", m_csrfToken);
 
 			// Get answer
-			System.out.println("Answer: " + connection.getHeaderFields());
+			System.err.println("Answer: " + connection.getHeaderFields());
 
 			// Read answer data
 			InputStream is = null;
 			if (HttpsURLConnection.HTTP_OK == connection.getResponseCode()) {
 				is = connection.getInputStream();
+			} else if (HttpsURLConnection.HTTP_UNAUTHORIZED == connection.getResponseCode()) {
+				throw new UnauthorizedException("The server returned 401 Unauthorized. Maybe your API key is invalid?");
 			} else {
 				is = connection.getErrorStream();
 			}
@@ -205,7 +234,7 @@ public class DataRetriever {
 			}
 			rd.close();
 
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			if (connection != null) {
@@ -223,7 +252,7 @@ public class DataRetriever {
 		StringBuffer response = new StringBuffer();
 
 		try {
-			System.out.println("Fetching CSRF at: " + m_csrfURL);
+			System.err.println("Fetching CSRF at: " + m_csrfURL);
 
 			connection = (HttpsURLConnection) (new URL(m_csrfURL)).openConnection();
 			connection.setRequestMethod("POST");
@@ -235,12 +264,12 @@ public class DataRetriever {
 			connection.setRequestProperty("Accept-charset", "utf-8");
 
 			// Get Response
-			System.out.println("Answer: " + connection.getHeaderFields());
+			System.err.println("Answer: " + connection.getHeaderFields());
 
 			// Get cookies
 			m_cookies = connection.getHeaderFields().get("Set-Cookie");
 			m_csrfToken = ((m_cookies.get(0)).split(";")[0]).split("=", 2)[1];
-			System.out.println("Detected token: " + m_csrfToken);
+			System.err.println("Detected token: " + m_csrfToken);
 
 			// Read answer data
 			InputStream is = null;
@@ -257,7 +286,7 @@ public class DataRetriever {
 			}
 			rd.close();
 
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			if (connection != null) {

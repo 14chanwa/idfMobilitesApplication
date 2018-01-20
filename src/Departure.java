@@ -13,8 +13,9 @@ public class Departure implements Comparable<Departure> {
 	 * Minimal working example
 	 * 
 	 * @param args
+	 *            No arguments required.
 	 */
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 
 		Departure _departure1 = new Departure("Destination paradise", 21);
 		Departure _departure2 = new Departure("Destination heaven", 12);
