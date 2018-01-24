@@ -34,7 +34,8 @@ public class DeparturePanel extends JPanel {
 	 * Minimal working example
 	 * 
 	 * @param args
-	 *            The first argument must be a valid API key.
+	 *            The first argument must be a valid API key. The second argument
+	 *            (optional) selects a test case.
 	 */
 	public static void main(String[] args) {
 		// This program requires you registering to Île-de-France Mobilités website in
@@ -48,32 +49,31 @@ public class DeparturePanel extends JPanel {
 		JFrame _testFrame = new JFrame();
 		_testFrame.setLocationRelativeTo(null);
 
-		int _testId = 1;
+		int _testId = -1;
 		// Get test ID if provided
 		if (args.length > 1) {
 			_testId = Integer.parseInt(args[1]);
 		}
 
+		DeparturePanel _departurePanel = null;
 		switch (_testId) {
 		case 0:
 			// Example of a Metro line
-			DeparturePanel.MAX_LINE_NUMBER = 2;
-			_testFrame.add(new DeparturePanel("100110005:5", "StopPoint:59270", 5, TimeUnit.SECONDS, "Ligne M 5",
-					"Gare du Nord"));
+			_departurePanel = new DeparturePanel("100110005:5", "StopPoint:59270", 5, TimeUnit.SECONDS, "Ligne M 5",
+					"Gare du Nord", 5, 2);
 			break;
 		case 1:
-			// Example of the RER A
-			DeparturePanel.MAX_LINE_NUMBER = 10;
-			DeparturePanel.MAX_WAITING_TIMES = 3;
-			_testFrame.add(new DeparturePanel("810:A", "StopPoint:8775860:810:A", 5, TimeUnit.SECONDS, "Ligne RER A",
-					"Châtelet - Les Halles"));
-			break;
-		case 2:
 			// Example of the RER C
-			_testFrame.add(new DeparturePanel("800:C", "StopPoint:8754520:800:C", 5, TimeUnit.SECONDS, "Ligne RER C",
-					"Saint-Michel - Notre-Dame"));
+			_departurePanel = new DeparturePanel("800:C", "StopPoint:8754520:800:C", 5, TimeUnit.SECONDS, "Ligne RER C",
+					"Saint-Michel - Notre-Dame", 5, 2);
+			break;
+		default:
+			// Example of the RER A
+			_departurePanel = new DeparturePanel("810:A", "StopPoint:8775860:810:A", 5, TimeUnit.SECONDS, "Ligne RER A",
+					"Châtelet - Les Halles", 10, 3);
 			break;
 		}
+		_testFrame.add(_departurePanel);
 
 		_testFrame.setPreferredSize(new Dimension(500, 250));
 		_testFrame.pack();
@@ -96,8 +96,11 @@ public class DeparturePanel extends JPanel {
 	private JPanel m_interiorPanel;
 	private List<List<JLabel>> m_intPanelLabels;
 
-	private static int MAX_LINE_NUMBER = 5;
-	private static int MAX_WAITING_TIMES = 2;
+	private int m_max_line_number = 5;
+	private int m_max_waiting_times = 2;
+	
+	private final int DEFAULT_MAX_LINE_NUMBER = 5;
+	private final int DEFAULT_MAX_WAITING_TIMES = 2;
 
 	/**
 	 * Constructor. Initializes variables and start refresh loop.
@@ -105,9 +108,14 @@ public class DeparturePanel extends JPanel {
 	 * @param _lineId
 	 * @param _stopID
 	 * @param _refreshInterval
+	 * @param _timeUnit
+	 * @param _lineName
+	 * @param _stopName
+	 * @param _max_line_number
+	 * @param _max_waiting_time
 	 */
 	public DeparturePanel(String _lineId, String _stopID, int _refreshInterval, TimeUnit _timeUnit, String _lineName,
-			String _stopName) {
+			String _stopName, int _max_line_number, int _max_waiting_time) {
 		m_lineId = _lineId;
 		m_stopId = _stopID;
 
@@ -115,6 +123,15 @@ public class DeparturePanel extends JPanel {
 
 		m_lineName = _lineName;
 		m_stopName = _stopName;
+		
+		// Set number of lines and waiting times if parameters provided
+		if (_max_line_number != -1 && _max_waiting_time != -1) {
+			m_max_line_number = _max_line_number;
+			m_max_waiting_times = _max_waiting_time;
+		} else {
+			m_max_line_number = DEFAULT_MAX_LINE_NUMBER;
+			m_max_waiting_times = DEFAULT_MAX_WAITING_TIMES;
+		}
 
 		// Build panel
 		_buildPanel();
@@ -139,8 +156,16 @@ public class DeparturePanel extends JPanel {
 		}, 0, _refreshInterval, _timeUnit);
 	}
 
+	/**
+	 * Constructor. No name for line and station.
+	 * 
+	 * @param _lineId
+	 * @param _stopID
+	 * @param _refreshInterval
+	 * @param _timeUnit
+	 */
 	public DeparturePanel(String _lineId, String _stopID, int _refreshInterval, TimeUnit _timeUnit) {
-		this(_lineId, _stopID, _refreshInterval, _timeUnit, null, null);
+		this(_lineId, _stopID, _refreshInterval, _timeUnit, null, null, -1, -1);
 	}
 
 	/**
@@ -191,7 +216,7 @@ public class DeparturePanel extends JPanel {
 
 		// Store JLabels
 		m_intPanelLabels = new ArrayList<List<JLabel>>();
-		for (int i = 0; i < MAX_LINE_NUMBER; i++) {
+		for (int i = 0; i < m_max_line_number; i++) {
 			m_intPanelLabels.add(new ArrayList<JLabel>());
 
 			// Destination
@@ -202,7 +227,7 @@ public class DeparturePanel extends JPanel {
 			_destination.setPreferredSize(new Dimension(1, 1));
 
 			// Waiting times
-			for (int j = 0; j < MAX_WAITING_TIMES; j++) {
+			for (int j = 0; j < m_max_waiting_times; j++) {
 				_cwt.gridy = i;
 				_cwt.gridx = j + 1;
 				JLabel _waiting_time = new JLabel("", SwingConstants.RIGHT);
@@ -225,8 +250,8 @@ public class DeparturePanel extends JPanel {
 	private void _refreshPanel() {
 
 		// Clear JLabels
-		for (int i = 0; i < MAX_LINE_NUMBER; i++) {
-			for (int j = 0; j < MAX_WAITING_TIMES + 1; j++) {
+		for (int i = 0; i < m_max_line_number; i++) {
+			for (int j = 0; j < m_max_waiting_times + 1; j++) {
 				m_intPanelLabels.get(i).get(j).setText("");
 			}
 		}
@@ -243,12 +268,12 @@ public class DeparturePanel extends JPanel {
 		// Fill JLabels
 		int _lineIndex = 0;
 		for (String _key : _map_destination_waiting_times.keySet()) {
-			if (_lineIndex < MAX_LINE_NUMBER) {
+			if (_lineIndex < m_max_line_number) {
 				// Fill destination
 				m_intPanelLabels.get(_lineIndex).get(0).setText(_key);
 
 				// Number of waiting times to fill
-				int _nb_labels_to_set = Math.min(MAX_WAITING_TIMES, _map_destination_waiting_times.get(_key).size());
+				int _nb_labels_to_set = Math.min(m_max_waiting_times, _map_destination_waiting_times.get(_key).size());
 				for (int j = 0; j < _nb_labels_to_set; j++) {
 					// m_intPanelLabels.get(_lineIndex).get(MAX_WAITING_TIMES - j)
 					// .setText(_map_destination_waiting_times.get(_key).get(_nb_labels_to_set - j -
