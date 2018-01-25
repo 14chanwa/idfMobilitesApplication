@@ -6,7 +6,13 @@ A small Java application connecting to the French Île-de-France Mobilités API 
 <img src="https://raw.githubusercontent.com/14chanwa/idfMobilitesApplication/master/wiki_resources/example_rerA_chatelet.png">
 </p>
 
-The project consists in an application that queries the next departures for a given stop and a given line using Île-de-France Mobilités's web API, then parses the query and stores it in an object format. I will also add some interface that enables a user to use the program more conveniently. Later on, I plan to transpose this program to Python and use it in a Rasbpi project of my own.
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/14chanwa/idfMobilitesApplication/master/wiki_resources/example2_rerA_chatelet.png">
+</p>
+
+
+The project consists in an application that queries the next departures for a given stop and a given line using Île-de-France Mobilités's web API, then parses the query and stores it in an object format. It also includes some graphical interface that displays the information more conveniently.
 
 
 ### Description
@@ -21,7 +27,10 @@ The project consists in the following files:
 */src/Departure.java*: implements an object to store the query results in a usable way.
 
 
-*/src/DepartureViewer.java*: builds a JFrame that displays the next departures for a given line at a given stop. **Work in progress.**
+*/src/InformationPanel.java*: builds a JPanel that can display a given set of Departures.
+
+
+*/src/TrainInformationFrame.java*: builds a JFrame that handles information display for trains in 2 separate panels, one for each direction (when the attribute `sens` is provided, for instance "1: East" or "-1: West").
 
 
 ### Dependancies

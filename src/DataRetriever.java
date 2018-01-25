@@ -128,9 +128,10 @@ public class DataRetriever {
 	 * @param _stopID
 	 * @return
 	 * @throws UnauthorizedException
-	 * @throws NotFoundException 
+	 * @throws NotFoundException
 	 */
-	public static List<Departure> getDeparturesLineAtStop(String _lineId, String _stopID) throws UnauthorizedException, NotFoundException {
+	public static List<Departure> getDeparturesLineAtStop(String _lineId, String _stopID)
+			throws UnauthorizedException, NotFoundException {
 
 		if (m_apiKey == null) {
 			throw new UnauthorizedException("You must first set a valid API key using DataRetriever.setAPIKey");
@@ -162,17 +163,30 @@ public class DataRetriever {
 		// Parse items of JSON answer
 		JSONArray arr = obj.getJSONArray("item");
 		for (int i = 0; i < arr.length(); i++) {
+			JSONObject _currentObj = arr.getJSONObject(i);
+			Departure _newDeparture = null;
 			// If duration, call duration constructor
-			if (arr.getJSONObject(i).getString("code").equals("duration")) {
-				_departures.add(new Departure(arr.getJSONObject(i).getString("lineDirection"),
-						Integer.parseInt(arr.getJSONObject(i).getString("time"))));
+			if (_currentObj.getString("code").equals("duration")) {
+				if (_currentObj.has("sens")) {
+					_newDeparture = new Departure(_currentObj.getString("lineDirection"),
+							Integer.parseInt(_currentObj.getString("time")), _currentObj.getInt("sens"));
+				} else {
+					_newDeparture = new Departure(_currentObj.getString("lineDirection"),
+							Integer.parseInt(_currentObj.getString("time")));
+				}
 				// Else if message call message constructor
 			} else {
-				_departures.add(new Departure(arr.getJSONObject(i).getString("lineDirection"),
-						arr.getJSONObject(i).getString("schedule")));
+				if (_currentObj.has("sens")) {
+					_newDeparture = new Departure(_currentObj.getString("lineDirection"),
+							_currentObj.getString("schedule"), _currentObj.getInt("sens"));
+				} else {
+					_newDeparture = new Departure(_currentObj.getString("lineDirection"),
+							_currentObj.getString("schedule"));
+				}
 			}
+			_departures.add(_newDeparture);
 		}
-		
+
 		return _departures;
 	}
 
@@ -193,8 +207,7 @@ public class DataRetriever {
 		}
 
 	}
-	
-	
+
 	public static class NotFoundException extends Exception {
 
 		/**
@@ -208,7 +221,6 @@ public class DataRetriever {
 
 	}
 
-	
 	/**
 	 * Execute a HTTP/1.1 GET method using the provided URL, with the current CSRF
 	 * token.
@@ -216,7 +228,7 @@ public class DataRetriever {
 	 * @param url
 	 * @return
 	 * @throws UnauthorizedException
-	 * @throws NotFoundException 
+	 * @throws NotFoundException
 	 */
 	private static String _executeGetRequest(URL url) throws UnauthorizedException, NotFoundException {
 		HttpsURLConnection connection = null;
@@ -231,7 +243,7 @@ public class DataRetriever {
 
 			// Include referrer site
 			connection.setRequestProperty("Referer", m_csrfURL);
-			
+
 			// Accept gzip encoding
 			connection.setRequestProperty("Accept-encoding", "gzip, deflate");
 			connection.setRequestProperty("Accept-charset", "utf-8");
@@ -249,19 +261,21 @@ public class DataRetriever {
 			} else if (HttpsURLConnection.HTTP_UNAUTHORIZED == connection.getResponseCode()) {
 				throw new UnauthorizedException("The server returned 401 Unauthorized. Maybe your API key is invalid?");
 			} else if (HttpsURLConnection.HTTP_NOT_FOUND == connection.getResponseCode()) {
-				throw new NotFoundException("The server returned 404 Not Found. The distant server might experience issues.");
+				throw new NotFoundException(
+						"The server returned 404 Not Found. The distant server might experience issues.");
 			} else {
 				is = connection.getErrorStream();
 			}
-			
+
 			// Handle gzip encoding
 			BufferedReader rd = null;
-			if (connection.getHeaderField("Content-Encoding")!=null && connection.getHeaderField("Content-Encoding").equals("gzip")) {
+			if (connection.getHeaderField("Content-Encoding") != null
+					&& connection.getHeaderField("Content-Encoding").equals("gzip")) {
 				rd = new BufferedReader(new InputStreamReader(new GZIPInputStream(is)));
 			} else {
 				rd = new BufferedReader(new InputStreamReader(is));
 			}
-			
+
 			// Read answer line by line
 			String line;
 			while ((line = rd.readLine()) != null) {
@@ -304,7 +318,7 @@ public class DataRetriever {
 
 			// Get cookies
 			m_cookies = connection.getHeaderFields().get("Set-Cookie");
-			
+
 			// Get CSRF token
 			m_csrfToken = ((m_cookies.get(0)).split(";")[0]).split("=", 2)[1];
 			System.err.println("Detected token: " + m_csrfToken);

@@ -47,53 +47,92 @@ public class Departure implements Comparable<Departure> {
 
 	}
 
+	/**
+	 * Indicates whether the message is a duration or a message
+	 * @author Quentin
+	 *
+	 */
+	private static enum MESSAGE_TYPE {
+		CODE_DURATION,
+		CODE_MESSAGE
+	}
+	
 	/*
 	 * Private parameters
 	 */
 
-	private static final int CODE_DURATION = 0;
-	private static final int CODE_MESSAGE = 1;
+	// CODE_DURATION if the waiting time is an amount (of minutes f.i.),
+	// CODE_MESSAGE else
+	private MESSAGE_TYPE m_code;
 
-	private int m_code;
+	// Name of the destination
+	private String m_lineDestination;
 
-	private String m_lineDirection;
-	// TODO implement handling direction code when available
-	// private int m_directionCode;
-
+	// The waiting time (message or amount (of minutes f.i.))
 	private String m_message;
 	private int m_time;
+	
+	public static final int DEFAULT_DIRECTION_CODE = 1;
+
+	// 1 or -1 depending on the direction of the line
+	private int m_directionCode;
+
+	/**
+	 * Constructor with available numeric time and direction
+	 * 
+	 * @param _lineDestination
+	 * @param _time
+	 * @param _directionCode
+	 */
+	public Departure(String _lineDestination, int _time, int _directionCode) {
+		m_code = MESSAGE_TYPE.CODE_DURATION;
+		m_lineDestination = _lineDestination;
+		m_time = _time;
+		m_directionCode = _directionCode;
+	}
 
 	/**
 	 * Constructor with available numeric time
 	 * 
-	 * @param _lineDirection
+	 * @param _lineDestination
 	 * @param _time
 	 */
-	public Departure(String _lineDirection, int _time) {
-		m_code = CODE_DURATION;
-		m_lineDirection = _lineDirection;
-		m_time = _time;
+	public Departure(String _lineDestination, int _time) {
+		this(_lineDestination, _time, DEFAULT_DIRECTION_CODE);
+	}
+
+	/**
+	 * Constructor with subjective waiting time (for instance "coming soon") and
+	 * direction code
+	 * 
+	 * @param _lineDestination
+	 * @param _schedule
+	 * @param _directionCode
+	 */
+	public Departure(String _lineDestination, String _schedule, int _directionCode) {
+		m_code = MESSAGE_TYPE.CODE_MESSAGE;
+		m_lineDestination = _lineDestination;
+		m_message = _schedule;
+		m_directionCode = _directionCode;
 	}
 
 	/**
 	 * Constructor with subjective waiting time (for instance "coming soon")
 	 * 
-	 * @param _lineDirection
+	 * @param _lineDestination
 	 * @param _schedule
 	 */
-	public Departure(String _lineDirection, String _schedule) {
-		m_code = CODE_MESSAGE;
-		m_lineDirection = _lineDirection;
-		m_message = _schedule;
+	public Departure(String _lineDestination, String _schedule) {
+		this(_lineDestination, _schedule, DEFAULT_DIRECTION_CODE);
 	}
 
 	@Override
 	public String toString() {
-		return getLineDirection() + "\t" + getWaitingTime();
+		return getLineDestination() + "\t" + getWaitingTime();
 	}
 
-	public String getLineDirection() {
-		return m_lineDirection;
+	public String getLineDestination() {
+		return m_lineDestination;
 	}
 
 	public String getWaitingTime() {
@@ -106,16 +145,20 @@ public class Departure implements Comparable<Departure> {
 		return null;
 	}
 
+	public int getDirectionCode() {
+		return m_directionCode;
+	}
+
 	/**
 	 * Implement comparison between departures
 	 */
 	@Override
 	public int compareTo(Departure arg0) {
-		if (this.m_code == CODE_DURATION && arg0.m_code == CODE_DURATION) {
+		if (this.m_code == MESSAGE_TYPE.CODE_DURATION && arg0.m_code == MESSAGE_TYPE.CODE_DURATION) {
 			return (this.m_time < arg0.m_time ? 1 : (this.m_time > arg0.m_time ? -1 : 0));
-		} else if (this.m_code == CODE_MESSAGE && arg0.m_code == CODE_DURATION) {
+		} else if (this.m_code == MESSAGE_TYPE.CODE_MESSAGE && arg0.m_code == MESSAGE_TYPE.CODE_DURATION) {
 			return 1;
-		} else if (this.m_code == CODE_DURATION && arg0.m_code == CODE_MESSAGE) {
+		} else if (this.m_code == MESSAGE_TYPE.CODE_DURATION && arg0.m_code == MESSAGE_TYPE.CODE_MESSAGE) {
 			return -1;
 		}
 		return 0;
