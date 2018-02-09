@@ -46,10 +46,10 @@ public class DataRetriever {
 
 		List<Departure> testList;
 
-		// List next departures for line M5 at stop Gare du Nord
+		// List next departures for line M5 at stop Gare du Nord using Vianavigo
 		System.out.println("Line M5, stop Gare du Nord: ");
 		try {
-			testList = DataRetriever.getDeparturesLineAtStop("100110005:5", "StopPoint:59270");
+			testList = DataRetriever.getDeparturesLineAtStop_ViaNavigo("100110005:5", "StopPoint:59270");
 			for (Departure d : testList) {
 				System.out.println(d);
 			}
@@ -69,10 +69,10 @@ public class DataRetriever {
 		// Bobigny Pablo Picasso 14
 		// Bobigny Pablo Picasso 20
 
-		// List next departures for line 38 at stop Auguste Comte
+		// List next departures for line 38 at stop Auguste Comte using Vianavigo
 		System.out.println("\nLine 38, stop Auguste Comte: ");
 		try {
-			testList = DataRetriever.getDeparturesLineAtStop("100100038:38", "59:3764622");
+			testList = DataRetriever.getDeparturesLineAtStop_ViaNavigo("100100038:38", "59:3764622");
 			for (Departure d : testList) {
 				System.out.println(d);
 			}
@@ -88,6 +88,29 @@ public class DataRetriever {
 		// Gare du Nord 13
 		// Porte d'Orleans 15
 		// Gare du Nord 29
+		
+		// List next departures for line M5 at stop Gare du Nord using STIF
+		System.out.println("Line M5, stop Gare du Nord: ");
+		try {
+			testList = DataRetriever.getDeparturesLineAtStop_STIF("STIF:StopPoint:Q:22007:");
+			for (Departure d : testList) {
+				System.out.println(d);
+			}
+		} catch (DataRetriever.UnauthorizedException e) {
+			e.printStackTrace();
+		} catch (NotFoundException e) {
+			e.printStackTrace();
+		}
+
+		// Typical result:
+		// Place d'Italie A quai
+		// Place d'Italie 7
+		// Place d'Italie 15
+		// Place d'Italie 21
+		// Bobigny Pablo Picasso A quai
+		// Bobigny Pablo Picasso 8
+		// Bobigny Pablo Picasso 14
+		// Bobigny Pablo Picasso 20
 
 	}
 
@@ -122,7 +145,7 @@ public class DataRetriever {
 
 	/**
 	 * Given a line ID and a stop ID, get the next times of the line at the stop
-	 * according to the data of the API.
+	 * according to the data of the API using Vianavigo data.
 	 * 
 	 * @param _lineId
 	 * @param _stopID
@@ -130,7 +153,7 @@ public class DataRetriever {
 	 * @throws UnauthorizedException
 	 * @throws NotFoundException
 	 */
-	public static List<Departure> getDeparturesLineAtStop(String _lineId, String _stopID)
+	public static List<Departure> getDeparturesLineAtStop_ViaNavigo(String _lineId, String _stopID)
 			throws UnauthorizedException, NotFoundException {
 
 		if (m_apiKey == null) {
@@ -189,6 +212,67 @@ public class DataRetriever {
 
 		return _departures;
 	}
+	
+	
+	/**
+	 * Given a monitoring reference, get the next times of the line at the stop
+	 * according to the data of the API using STIF data.
+	 * 
+	 * @param _monitoringRef
+	 * @return
+	 * @throws UnauthorizedException
+	 * @throws NotFoundException
+	 */
+	public static List<Departure> getDeparturesLineAtStop_STIF(String _monitoringRef)
+			throws UnauthorizedException, NotFoundException {
+
+		if (m_apiKey == null) {
+			throw new UnauthorizedException("You must first set a valid API key using DataRetriever.setAPIKey");
+		}
+
+		// Prepare API query
+		String _urlString = "https://api-lab-trone-stif.opendata.stif.info/service/tr-unitaire-stif/stop-monitoring?" + "apikey="
+				+ m_apiKey + "&" + "MonitoringRef=" + _monitoringRef;
+		URL url = null;
+		try {
+			url = new URL(_urlString);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+
+		// Get query answer
+		String _queryAnswer = _executeGetRequest(url);
+
+		// Debug
+		// System.err.println("Raw answer:\n" + _queryAnswer);
+
+		// Build list of departures
+		List<Departure> _departures = new ArrayList<Departure>();
+
+		// Format to correct JSON
+		String _testString = _queryAnswer;
+		
+		// DEBUG show request output
+		System.err.println(_queryAnswer);
+		
+		JSONObject obj = new JSONObject(_testString);
+
+		// Parse items of JSON answer
+		JSONArray arr = obj.getJSONObject("Siri")
+				.getJSONObject("ServiceDelivery")
+				.getJSONArray("StopMonitoringDelivery")
+				.getJSONObject(0)
+				.getJSONArray("MonitoredStopVisit");
+		for (int i = 0; i < arr.length(); i++) {
+			JSONObject _currentObj = arr.getJSONObject(i);
+			Departure _newDeparture = new Departure(_currentObj.getString("DestinationName"), _currentObj.getString("ExpectedDepartureTime"));
+			_departures.add(_newDeparture);
+		}
+
+		return _departures;
+	}
+	
+	
 
 	/*
 	 * PRIVATE METHODS

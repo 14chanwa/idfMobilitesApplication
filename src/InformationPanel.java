@@ -119,7 +119,7 @@ public class InformationPanel extends JPanel {
 			public void run() {
 				try {
 					// Get information from
-					List<Departure> _departureList = DataRetriever.getDeparturesLineAtStop(_finalLineId, _finalStopId);
+					List<Departure> _departureList = DataRetriever.getDeparturesLineAtStop_ViaNavigo(_finalLineId, _finalStopId);
 					System.out.println(_departureList);
 
 					// Refresh panel information

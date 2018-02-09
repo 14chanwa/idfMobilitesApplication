@@ -44,15 +44,17 @@ public class TrainInformationFrame extends JFrame {
 		// I cannot disclose my key for obvious reasons
 		DataRetriever.setAPIKey(args[0]);
 
-		TrainInformationFrame _trainInformationFrame = new TrainInformationFrame("Ligne RER A", "Châtelet - Les Halles",
-				6, 2, ORIENTATION.HORIZONTAL, "Direction Est", "Direction Ouest");
+//		TrainInformationFrame _trainInformationFrame = new TrainInformationFrame("Ligne RER A", "Châtelet - Les Halles",
+//				6, 2, ORIENTATION.HORIZONTAL, "Direction Est", "Direction Ouest");
+		TrainInformationFrame _trainInformationFrame = new TrainInformationFrame("Ligne RER B", "Denfert",
+				6, 2, ORIENTATION.HORIZONTAL, "Direction N", "Direction S");
 		_trainInformationFrame.setPreferredSize(new Dimension(800, 250));
 		_trainInformationFrame.pack();
 		_trainInformationFrame.setVisible(true);
 
 		// Refresh Line A information
-		final String _finalLineId = "810:A";
-		final String _finalStopId = "StopPoint:8775860:810:A";
+		final String _finalLineId = "810:B";
+		final String _finalStopId = "StopPoint:8775863:810:B";
 		final TrainInformationFrame _finalTrainInformationFrame = _trainInformationFrame;
 
 		// Refresh each 5 seconds
@@ -66,7 +68,7 @@ public class TrainInformationFrame extends JFrame {
 			public void run() {
 				try {
 					// Get information from
-					List<Departure> _departureList = DataRetriever.getDeparturesLineAtStop(_finalLineId, _finalStopId);
+					List<Departure> _departureList = DataRetriever.getDeparturesLineAtStop_ViaNavigo(_finalLineId, _finalStopId);
 					System.out.println(_departureList);
 
 					// Refresh panel information
